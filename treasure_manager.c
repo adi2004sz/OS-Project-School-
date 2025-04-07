@@ -130,35 +130,6 @@ void view_treasure(const char *hunt_dir, int treasure_id) {
     close(fd);
 }
 
-void remove_treasure(const char *hunt_dir, int treasure_id) {
-    char file_path[256];
-    snprintf(file_path, sizeof(file_path), "%s/%s", hunt_dir, TREASURE_FILE);
-
-    int fd = open(file_path, O_RDWR);
-    if (fd == -1) {
-        perror("Error opening treasure file");
-        return;
-    }
-
-    Treasure treasure;
-    off_t offset = 0;
-    while (read(fd, &treasure, sizeof(Treasure)) > 0) {
-        if (treasure.id == treasure_id) {
-            lseek(fd, offset, SEEK_SET);
-            while (read(fd, &treasure, sizeof(Treasure)) > 0) {
-                write(fd, &treasure, sizeof(Treasure));
-            }
-            ftruncate(fd, lseek(fd, 0, SEEK_CUR) - sizeof(Treasure));
-            close(fd);
-            return;
-        }
-        offset += sizeof(Treasure);
-    }
-
-    printf("Treasure with ID %d not found.\n", treasure_id);
-    close(fd);
-}
-
 void remove_hunt(const char *hunt_id) {
     char hunt_dir[256];
     snprintf(hunt_dir, sizeof(hunt_dir), "./%s", hunt_id);
@@ -171,18 +142,37 @@ void remove_hunt(const char *hunt_id) {
 
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) {
-        if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
-            char file_path[256];
-            snprintf(file_path, sizeof(file_path), "%s/%s", hunt_dir, entry->d_name);
-            unlink(file_path);
+        // Skip "." and ".."
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        // Ensure the buffer size
+        char file_path[512];
+        int result = snprintf(file_path, sizeof(file_path), "%s/%s", hunt_dir, entry->d_name);
+
+        // Check if snprintf truncated the output
+        if (result < 0 || result >= sizeof(file_path)) {
+            fprintf(stderr, "Error: Path too long for file '%s/%s'\n", hunt_dir, entry->d_name);
+            continue;
+        }
+
+        // Remove file
+        if (unlink(file_path) == -1) {
+            perror("Error removing file");
         }
     }
     closedir(dir);
 
+    // Remove hunt directory
     if (rmdir(hunt_dir) == -1) {
         perror("Error removing hunt directory");
+    } else {
+        printf("Hunt '%s' removed successfully.\n", hunt_id);
     }
 }
+
+
 
 int main(int argc, char *argv[]) {
     if (argc < 3) {
