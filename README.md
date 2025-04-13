@@ -70,5 +70,6 @@ If the symlink already exists, it is ignored. If it fails to create, an error is
 
 ##  Build & Run
 Compile with ggc : `gcc -o treasure_manager treasure_manager.c`
+
 And run the command you want : `./treasure_manager <command> ...`
 
