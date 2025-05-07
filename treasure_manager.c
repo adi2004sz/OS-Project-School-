@@ -61,8 +61,7 @@ void create_symlink(const char *hunt_id, const char *hunt_dir) {
 }
 
 
-//add <hunt_id>: Add a new treasure to the specified hunt (game session). 
-//Each hunt is stored in a separate directory.
+//hunt stored in separate directory
 int add_treasure(const char *hunt_dir, const Treasure *treasure) {
     char file_path[256];
     snprintf(file_path, sizeof(file_path), "%s/%s", hunt_dir, TREASURE_FILE);
@@ -84,9 +83,6 @@ int add_treasure(const char *hunt_dir, const Treasure *treasure) {
 }
 
 
-//list <hunt_id>: List all treasures in the specified hunt. 
-//First print the hunt name, the (total) file size and last modification 
-//time of its treasure file(s), then list the treasures.
 void list_treasures(const char *hunt_dir) {
     char file_path[256];
     snprintf(file_path, sizeof(file_path), "%s/%s", hunt_dir, TREASURE_FILE);
@@ -118,7 +114,6 @@ void list_treasures(const char *hunt_dir) {
 }
 
 
-//view <hunt_id> <id>: View details of a specific treasure
 void view_treasure(const char *hunt_dir, int treasure_id) {
     char file_path[256];
     snprintf(file_path, sizeof(file_path), "%s/%s", hunt_dir, TREASURE_FILE);
@@ -144,7 +139,6 @@ void view_treasure(const char *hunt_dir, int treasure_id) {
     close(fd);
 }
 
-//remove_hunt <hunt_id>: Remove an entire hunt
 void remove_hunt(const char *hunt_id) {
     char hunt_dir[256];
     snprintf(hunt_dir, sizeof(hunt_dir), "./%s", hunt_id);
@@ -188,7 +182,6 @@ void remove_hunt(const char *hunt_id) {
 }
 
 
-//remove_treasure <hunt_id> <id>: Remove a treasure 
 void remove_treasure(const char *hunt_dir, int treasure_id) {
     char file_path[256];
     snprintf(file_path, sizeof(file_path), "%s/%s", hunt_dir, TREASURE_FILE);
