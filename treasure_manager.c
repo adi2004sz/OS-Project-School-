@@ -61,7 +61,6 @@ void create_symlink(const char *hunt_id, const char *hunt_dir) {
 }
 
 
-//hunt stored in separate directory
 int add_treasure(const char *hunt_dir, const Treasure *treasure) {
     char file_path[256];
     snprintf(file_path, sizeof(file_path), "%s/%s", hunt_dir, TREASURE_FILE);
@@ -161,7 +160,7 @@ void remove_hunt(const char *hunt_id) {
         int result = snprintf(file_path, sizeof(file_path), "%s/%s", hunt_dir, entry->d_name);
 
         
-        if (result < 0 || result >= sizeof(file_path)) {
+        if (result < 0 || (size_t)result >= sizeof(file_path)) {
             fprintf(stderr, "Error: Path too long for file '%s/%s'\n", hunt_dir, entry->d_name);
             continue;
         }
@@ -179,6 +178,11 @@ void remove_hunt(const char *hunt_id) {
     } else {
         printf("Hunt '%s' removed successfully.\n", hunt_id);
     }
+
+    // remove  symlink
+    char symlink_name[256];
+    snprintf(symlink_name, sizeof(symlink_name), "logged_hunt-%s", hunt_id);
+    unlink(symlink_name);
 }
 
 
@@ -236,6 +240,18 @@ void remove_treasure(const char *hunt_dir, int treasure_id) {
 }
 
 
+// added for Phase 2 to support monitor process
+int count_treasures(const char *hunt_dir) {
+    char file_path[256];
+    snprintf(file_path, sizeof(file_path), "%s/%s", hunt_dir, TREASURE_FILE);
+
+    struct stat file_stat;
+    if (stat(file_path, &file_stat) == -1) {
+        return 0;
+    }
+
+    return file_stat.st_size / sizeof(Treasure);
+}
 
 
 int main(int argc, char *argv[]) {
@@ -294,6 +310,10 @@ int main(int argc, char *argv[]) {
 
     } else if (strcmp(command, "remove_hunt") == 0) {
         remove_hunt(hunt_id);
+        
+    } else if (strcmp(command, "count") == 0) {
+        int count = count_treasures(hunt_dir);
+        printf("%d\n", count);
         
     } else {
         fprintf(stderr, "Unknown command: %s\n", command);
