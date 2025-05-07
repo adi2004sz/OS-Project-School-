@@ -6,6 +6,9 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <dirent.h>
+#include <time.h>
+#include <sys/stat.h>
 
 #define CMD_FILE "/tmp/treasure_hub_cmd"
 
@@ -15,6 +18,7 @@ int monitor_running = 0;
 void start_monitor();
 void handle_user_command(char *cmd);
 void handle_child_signal(int sig);
+void list_hunts();
 
 void handle_child_signal(int sig) {
     wait(NULL);
@@ -45,8 +49,39 @@ void handle_user_command(char *cmd) {
         } else {
             printf("Monitor already running\n");
         }
+    } else if (strcmp(cmd, "list_hunts") == 0) {
+        list_hunts();
     } else {
         printf("Unknown command: %s\n", cmd);
+    }
+}
+
+void list_hunts() {
+    DIR *dir = opendir(".");
+    if (!dir) return;
+
+    struct dirent *entry;
+    struct stat st;
+    int hunt_count = 0;
+
+    printf("Available hunts:\n");
+    printf("----------------------------\n");
+
+    srand(time(NULL));
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_type == DT_DIR &&
+            strcmp(entry->d_name, ".") != 0 &&
+            strcmp(entry->d_name, "..") != 0) {
+            int progress = rand() % 101;
+            printf("Hunt: %s — Progress: %d%%\n", entry->d_name, progress);
+            hunt_count++;
+        }
+    }
+
+    closedir(dir);
+    if (hunt_count == 0) {
+        printf("No hunts found.\n");
     }
 }
 
