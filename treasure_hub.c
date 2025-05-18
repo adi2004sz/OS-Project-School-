@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <dirent.h>
+#include <sys/dirent.h>
 
 #define MAX_CMD_LENGTH 256
 #define MAX_ARGS 10
